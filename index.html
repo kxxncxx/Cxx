@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odaklanma Süresi ve Ders Kaydı 🚀</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #05000a;
+            background-image: radial-gradient(circle at 50% 50%, #2a004f 0%, #05000a 80%);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 20px 5px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #dfa6ff;
+            text-shadow: 0 0 10px #b056ff, 0 0 20px #b056ff;
+        }
+
+        .system-status-bar {
+            background: rgba(30, 10, 60, 0.8);
+            border: 1px solid rgba(176, 86, 255, 0.5);
+            border-radius: 15px;
+            margin: 10px 20px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(176, 86, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .system-status-bar.mola {
+            background: rgba(255, 0, 100, 0.3);
+            border-color: #ff0066;
+            box-shadow: 0 0 20px rgba(255, 0, 100, 0.6);
+            animation: pulseAlert 2s infinite;
+        }
+        @keyframes pulseAlert {
+            0% { box-shadow: 0 0 10px rgba(255, 0, 100, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(255, 0, 100, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(255, 0, 100, 0.4); }
+        }
+        .status-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #dfa6ff;
+            margin-bottom: 2px;
+        }
+        .system-status-bar.mola .status-title {
+            color: #ffb3d1;
+            text-shadow: 0 0 5px #ff0066;
+        }
+        .status-time-left {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 20px;
+            overflow: hidden;
+        }
+
+        .view-section {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+        .view-section.active {
+            display: flex;
+        }
+        
+        .view-section::-webkit-scrollbar { display: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
+        .timer-display {
+            font-size: 65px;
+            font-weight: 400;
+            margin: 10px 0;
+            text-shadow: 0 0 15px #b056ff, 0 0 30px #b056ff;
+        }
+        .timer-subtitle {
+            font-size: 16px;
+            color: #d19cfc;
+            margin-bottom: 10px;
+        }
+        .total-time-display {
+            font-size: 18px;
+            color: #dfa6ff;
+            margin-bottom: 40px;
+            background: rgba(157, 59, 245, 0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(176, 86, 255, 0.3);
+        }
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+        .timer-btn {
+            background-color: transparent;
+            color: #dfa6ff;
+            border: 1px solid #b056ff;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(176, 86, 255, 0.3) inset;
+            cursor: pointer;
+            width: 140px;
+        }
+        .timer-btn.active-btn {
+            background-color: #9d3bf5;
+            color: white;
+            box-shadow: 0 0 15px #b056ff;
+            border: none;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 0, 10, 0.85);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: rgba(25, 5, 50, 0.95);
+            border: 2px solid #b056ff;
+            border-radius: 20px;
+            padding: 25px;
+            width: 80%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(176, 86, 255, 0.4);
+        }
+        .modal-content h3 {
+            color: #dfa6ff;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #b056ff;
+        }
+        .mola-btn {
+            width: 100%;
+            background: rgba(40, 10, 70, 0.8);
+            color: #fff;
+            border: 1px solid #9d3bf5;
+            border-radius: 15px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .mola-btn:hover {
+            background: #9d3bf5;
+            box-shadow: 0 0 10px #b056ff;
+        }
+        .modal-close-btn {
+            background: transparent;
+            color: #ff6b6b;
+            border: none;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .mini-screen {
+            background: rgba(20, 0, 40, 0.6);
+            border: 1px solid rgba(176, 86, 255, 0.5);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(176, 86, 255, 0.2);
+            width: 100%;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .mini-screen h3 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #f0c9ff;
+            text-shadow: 0 0 10px #b056ff;
+        }
+        .input-group { margin-bottom: 15px; position: relative; }
+        .input-box {
+            display: flex;
+            align-items: center;
+            background: rgba(40, 10, 70, 0.5);
+            border: 1px solid #9d3bf5;
+            border-radius: 20px;
+            padding: 10px 15px;
+        }
+        .input-icon { font-size: 20px; margin-right: 12px; color: #b056ff; }
+        .input-field { display: flex; flex-direction: column; flex: 1; }
+        .input-label { font-size: 11px; color: #a985cc; margin-bottom: 4px; }
+        .input-field input { background: transparent; border: none; color: white; font-size: 16px; outline: none; }
+        .error-msg { color: #ff6b6b; font-size: 12px; margin-left: 15px; margin-top: 5px; display: none; }
+        
+        .start-action-btn {
+            width: 100%;
+            background-color: #a044ff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #b056ff;
+        }
+
+        .section-title {
+            width: 100%;
+            text-align: left;
+            margin: 20px 0 10px 0;
+            color: #dfa6ff;
+            font-size: 16px;
+            border-bottom: 1px solid rgba(176, 86, 255, 0.3);
+            padding-bottom: 5px;
+        }
+        .list-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .card {
+            background: rgba(30, 10, 60, 0.7);
+            border: 1px solid rgba(157, 59, 245, 0.4);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-info { display: flex; flex-direction: column; }
+        .card-info strong { color: #f0c9ff; font-size: 15px; margin-bottom: 4px; }
+        .card-info span { color: #a985cc; font-size: 12px; }
+        .card-info .time { color: #fff; font-size: 13px; margin-top: 5px; font-weight: bold; }
+        
+        .card-action-btn {
+            background: #9d3bf5;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0 25px;
+            background: rgba(10, 0, 20, 0.8);
+            border-top: 1px solid #3a155c;
+            margin-top: auto;
+        }
+        .nav-item {
+            text-align: center;
+            color: #6a4b8c;
+            font-size: 12px;
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+        }
+        .nav-item.active { color: #dfa6ff; text-shadow: 0 0 10px #b056ff; }
+        .nav-icon { font-size: 22px; display: block; margin-bottom: 4px; transition: 0.3s; }
+        .nav-item.active .nav-icon { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header" id="mainHeader">📚 Ders: Seçilmedi</div>
+    
+    <div class="system-status-bar" id="systemStatusBar">
+        <div class="status-title" id="statusTitle">⏳ Program Yükleniyor...</div>
+        <div class="status-time-left" id="statusTimeLeft">-- dk kaldı</div>
+    </div>
+    
+    <div class="content-area">
+        <div id="view-ders" class="view-section active">
+            <div class="mini-screen">
+                <h3>✨ Yeni Ders Kaydı ✨</h3>
+                <div class="input-group">
+                    <div class="input-box">
+                        <span class="input-icon">📘</span>
+                        <div class="input-field">
+                            <span class="input-label">Ders Adı (zorunlu)</span>
+                            <input type="text" id="dersInput" placeholder="Örn: Matematik">
+                        </div>
+                    </div>
+                    <div class="error-msg" id="dersError">⚠️ Ders adı zorunludur</div>
+                </div>
+                <div class="input-group">
+                    <div class="input-box">
+                        <span class="input-icon">✏️</span>
+                        <div class="input-field">
+                            <span class="input-label">Konu</span>
+                            <input type="text" id="konuInput" placeholder="Örn: Türev">
+                        </div>
+                    </div>
+                </div>
+                <button class="start-action-btn" onclick="yeniDersBasla()">🚀 Sıfırdan Başla</button>
+            </div>
+
+            <div class="section-title">📚 Kayıtlı Dersler</div>
+            <div class="list-container" id="kayitliDerslerList"></div>
+        </div>
+
+        <div id="view-sure" class="view-section">
+            <div class="timer-container">
+                <div class="timer-display" id="timeDisplay">00:00:00</div>
+                <div class="timer-subtitle">⚡ Bu Oturum ⚡</div>
+                <div class="total-time-display" id="totalTimeDisplay">🏆 Toplam: 00:00:00</div>
+                
+                <div class="timer-controls">
+                    <button class="timer-btn" id="pauseBtn" onclick="toggleTimer()">▶️ Devam Et</button>
+                    <button class="timer-btn" onclick="molaSeciminiAc()">☕ Mola / Durdur</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-gecmis" class="view-section">
+            <div class="section-title" style="margin-top: 0;">📊 Tamamlanan Oturumlar</div>
+            <div class="list-container" id="gecmisList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="molaModal">
+        <div class="modal-content">
+            <h3>☕ Mola Nedeni?</h3>
+            <button class="mola-btn" onclick="durdurVeKaydet('Sigara 🚬')">🚬 Sigara</button>
+            <button class="mola-btn" onclick="durdurVeKaydet('Atıştırma 🍫')">🍫 Atıştırma</button>
+            <button class="mola-btn" onclick="durdurVeKaydet('Öğle Yemeği 🍲')">🍲 Öğle Yemeği</button>
+            <button class="mola-btn" onclick="durdurVeKaydet('Genel Mola 🕒')">🕒 Diğer Mola</button>
+            <button class="modal-close-btn" onclick="molaModalKapat()">Vazgeç</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" id="nav-ders" onclick="switchTab('ders')">
+            <span class="nav-icon">📚</span>Ders
+        </div>
+        <div class="nav-item" id="nav-sure" onclick="switchTab('sure')">
+            <span class="nav-icon">⏱️</span>Süre
+        </div>
+        <div class="nav-item" id="nav-gecmis" onclick="switchTab('gecmis')">
+            <span class="nav-icon">📊</span>Geçmiş
+        </div>
+    </div>
+</div>
+
+<script>
+    const classSchedule = [
+        { start: "09:00", end: "10:00" },
+        { start: "10:10", end: "11:10" },
+        { start: "11:20", end: "12:30" },
+        { start: "13:45", end: "14:45" },
+        { start: "14:55", end: "15:55" },
+        { start: "16:05", end: "17:05" },
+        { start: "17:15", end: "18:15" },
+        { start: "19:35", end: "20:35" },
+        { start: "20:45", end: "21:30" }
+    ];
+
+    let subjects = JSON.parse(localStorage.getItem('dersSubjects')) || {};
+    let historyData = JSON.parse(localStorage.getItem('dersHistory')) || [];
+
+    let timer = null;
+    let oturumSaniye = 0;
+    let isRunning = false;
+    let aktifDers = "";
+    let aktifKonu = "";
+    let aktifKey = "";
+
+    window.onload = () => {
+        renderKayıtlıDersler();
+        renderGecmis();
+        setInterval(checkScheduleStatus, 30000);
+        checkScheduleStatus();
+    };
+
+    function verileriKaydet() {
+        localStorage.setItem('dersSubjects', JSON.stringify(subjects));
+        localStorage.setItem('dersHistory', JSON.stringify(historyData));
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + tabId).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('nav-' + tabId).classList.add('active');
+    }
+
+    function formatZaman(toplamSaniye) {
+        const gun = Math.floor(toplamSaniye / 86400);
+        const saat = Math.floor((toplamSaniye % 86400) / 3600).toString().padStart(2, '0');
+        const dakika = Math.floor((toplamSaniye % 3600) / 60).toString().padStart(2, '0');
+        const saniye = (toplamSaniye % 60).toString().padStart(2, '0');
+        if (gun > 0) return `${gun} Gün ${saat}:${dakika}:${saniye}`;
+        return `${saat}:${dakika}:${saniye}`;
+    }
+
+    function timeToMinutes(timeStr) {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    function checkScheduleStatus() {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        let isCurrentlyInClass = false;
+        let activeClassIndex = -1;
+        let nextClassIndex = -1;
+
+        for (let i = 0; i < classSchedule.length; i++) {
+            const startMin = timeToMinutes(classSchedule[i].start);
+            const endMin = timeToMinutes(classSchedule[i].end);
+            if (currentMinutes >= startMin && currentMinutes < endMin) {
+                isCurrentlyInClass = true;
+                activeClassIndex = i;
+                break;
+            }
+        }
+
+        for (let i = 0; i < classSchedule.length; i++) {
+            const startMin = timeToMinutes(classSchedule[i].start);
+            if (currentMinutes < startMin) {
+                nextClassIndex = i;
+                break;
+            }
+        }
+
+        const statusBar = document.getElementById('systemStatusBar');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusTimeLeft = document.getElementById('statusTimeLeft');
+
+        if (isCurrentlyInClass) {
+            const endMin = timeToMinutes(classSchedule[activeClassIndex].end);
+            const timeLeft = endMin - currentMinutes;
+            statusBar.classList.remove('mola');
+            statusTitle.innerText = "📖 Sistem: Derstesin";
+            statusTimeLeft.innerText = `☕ Molaya ${timeLeft} dk kaldı`;
+        } else {
+            statusBar.classList.add('mola');
+            if (nextClassIndex !== -1) {
+                const nextStartMin = timeToMinutes(classSchedule[nextClassIndex].start);
+                const timeLeft = nextStartMin - currentMinutes;
+                statusTitle.innerText = "🚨 MOLA GELDİ!";
+                statusTimeLeft.innerText = `📚 Derse ${timeLeft} dk kaldı`;
+            } else {
+                statusTitle.innerText = "🎉 Günün Dersleri Bitti";
+                statusTimeLeft.innerText = "😴 İyi Dinlenmeler!";
+            }
+        }
+    }
+
+    function yeniDersBasla() {
+        const dInput = document.getElementById('dersInput').value.trim();
+        const kInput = document.getElementById('konuInput').value.trim();
+        if (dInput === "") {
+            document.getElementById('dersError').style.display = "block";
+            return;
+        }
+        document.getElementById('dersError').style.display = "none";
+        dersiBaslat(dInput, kInput);
+    }
+
+    function kayitliDerseDevam(ders, konu) {
+        dersiBaslat(ders, konu);
+    }
+
+    function dersiBaslat(ders, konu) {
+        aktifDers = ders;
+        aktifKonu = konu;
+        aktifKey = ders + "|" + konu;
+
+        if (!subjects[aktifKey]) {
+            subjects[aktifKey] = { ders: ders, konu: konu, toplamSaniye: 0 };
+        }
+        document.getElementById('mainHeader').innerText = `📚 Ders: ${ders}`;
+        
+        oturumSaniye = 0;
+        clearInterval(timer);
+        gostergeleriGuncelle();
+        startInterval();
+        switchTab('sure');
+    }
+
+    function gostergeleriGuncelle() {
+        document.getElementById('timeDisplay').innerText = formatZaman(oturumSaniye);
+        let gecmisToplam = subjects[aktifKey] ? subjects[aktifKey].toplamSaniye : 0;
+        let anlikToplam = gecmisToplam + oturumSaniye;
+        document.getElementById('totalTimeDisplay').innerText = `🏆 Toplam: ${formatZaman(anlikToplam)}`;
+    }
+
+    function toggleTimer() {
+        if (!aktifKey) return; 
+        const btn = document.getElementById('pauseBtn');
+        if (isRunning) {
+            clearInterval(timer);
+            isRunning = false;
+            btn.innerText = "▶️ Devam Et";
+            btn.classList.remove('active-btn');
+        } else {
+            startInterval();
+        }
+    }
+
+    function startInterval() {
+        isRunning = true;
+        const btn = document.getElementById('pauseBtn');
+        btn.innerText = "⏸️ Duraklat";
+        btn.classList.add('active-btn');
+        timer = setInterval(() => {
+            oturumSaniye++;
+            gostergeleriGuncelle();
+        }, 1000);
+    }
+
+    function molaSeciminiAc() {
+        if (!aktifKey || oturumSaniye === 0) return;
+        document.getElementById('molaModal').style.display = "flex";
+    }
+
+    function molaModalKapat() {
+        document.getElementById('molaModal').style.display = "none";
+    }
+
+    function durdurVeKaydet(molaNedeni) {
+        molaModalKapat();
+        clearInterval(timer);
+        isRunning = false;
+        
+        subjects[aktifKey].toplamSaniye += oturumSaniye;
+        
+        let tarih = new Date();
+        historyData.unshift({
+            ders: aktifDers,
+            konu: (aktifKonu ? aktifKonu + " " : "") + `(${molaNedeni})`,
+            oturumSaniye: oturumSaniye,
+            tarih: tarih.toLocaleDateString() + " " + tarih.toLocaleTimeString()
+        });
+
+        verileriKaydet();
+        renderKayıtlıDersler();
+        renderGecmis();
+
+        const btn = document.getElementById('pauseBtn');
+        btn.innerText = "▶️ Devam Et";
+        btn.classList.remove('active-btn');
+        
+        oturumSaniye = 0;
+        gostergeleriGuncelle();
+        switchTab('gecmis');
+    }
+
+    function renderKayıtlıDersler() {
+        const liste = document.getElementById('kayitliDerslerList');
+        liste.innerHTML = "";
+        let kayitlar = Object.values(subjects);
+        if(kayitlar.length === 0) {
+            liste.innerHTML = "<p style='text-align:center; color:#a985cc; font-size:12px;'>📭 Henüz kayıtlı ders yok.</p>";
+            return;
+        }
+        kayitlar.forEach(item => {
+            let div = document.createElement('div');
+            div.className = "card";
+            div.innerHTML = `
+                <div class="card-info">
+                    <strong>📖 ${item.ders}</strong>
+                    <span>${item.konu ? '✏️ Konu: ' + item.konu : '📝 Konu belirtilmedi'}</span>
+                    <span class="time">⏳ Birikmiş: ${formatZaman(item.toplamSaniye)}</span>
+                </div>
+                <button class="card-action-btn" onclick="kayitliDerseDevam('${item.ders}', '${item.konu}')">▶️ Devam</button>
+            `;
+            liste.appendChild(div);
+        });
+    }
+
+    function renderGecmis() {
+        const liste = document.getElementById('gecmisList');
+        liste.innerHTML = "";
+        if(historyData.length === 0) {
+            liste.innerHTML = "<p style='text-align:center; color:#a985cc; font-size:12px;'>📭 Henüz geçmiş kayıt yok.</p>";
+            return;
+        }
+        historyData.forEach(item => {
+            let div = document.createElement('div');
+            div.className = "card";
+            div.innerHTML = `
+                <div class="card-info">
+                    <strong>📖 ${item.ders}</strong>
+                    <span>${item.konu ? '✏️ ' + item.konu : '-'} | 📅 ${item.tarih}</span>
+                    <span class="time" style="color:#dfa6ff;">⏱️ + ${formatZaman(item.oturumSaniye)}</span>
+                </div>
+            `;
+            liste.appendChild(div);
+        });
+    }
+</script>
+
+</body>
+</html>
